@@ -239,10 +239,9 @@ function deleteBooking(id) {
 // query, conflict check, and ownership rule working unchanged - a recurring
 // booking is just several normal bookings with a shared tag.
 const MAX_RECURRING_OCCURRENCES = 52;
-const RECURRENCE_STEP_DAYS = { weekly: 7, biweekly: 14 };
 
-function addBookingSeries({ office_id, therapist_id, start_time, end_time, note, firstDate, frequency, until }) {
-  const stepDays = RECURRENCE_STEP_DAYS[frequency];
+function addBookingSeries({ office_id, therapist_id, start_time, end_time, note, firstDate, intervalWeeks, until }) {
+  const stepDays = intervalWeeks * 7;
   const dates = [];
   let cursor = firstDate;
   let truncated = false;

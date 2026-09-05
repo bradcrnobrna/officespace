@@ -509,8 +509,10 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
   const seriesNote = document.getElementById('modalSeriesNote');
   const bookingAs = document.getElementById('modalBookingAs');
   const repeatRow = document.getElementById('repeatRow');
+  const repeatCustomRow = document.getElementById('repeatCustomRow');
   const repeatUntilRow = document.getElementById('repeatUntilRow');
   const repeatSelect = document.getElementById('modalRepeat');
+  const repeatIntervalInput = document.getElementById('modalRepeatInterval');
   const repeatUntilInput = document.getElementById('modalRepeatUntil');
 
   errorEl.classList.add('hidden');
@@ -548,6 +550,7 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
 
     // Repeat is only offered when creating a new booking, not editing an occurrence.
     repeatRow.classList.add('hidden');
+    repeatCustomRow.classList.add('hidden');
     repeatUntilRow.classList.add('hidden');
 
     deleteBtn.textContent = booking.series_id ? 'Delete this occurrence' : 'Delete';
@@ -564,8 +567,10 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
     noteInput.value = '';
     bookingAs.textContent = `Booking as: ${state.me.name}`;
     repeatRow.classList.remove('hidden');
+    repeatCustomRow.classList.add('hidden');
     repeatUntilRow.classList.add('hidden');
     repeatSelect.value = 'none';
+    repeatIntervalInput.value = '3';
     repeatUntilInput.value = '';
     deleteBtn.classList.add('hidden');
     deleteSeriesBtn.classList.add('hidden');
@@ -631,12 +636,15 @@ function setupEvents() {
   });
 
   document.getElementById('modalRepeat').addEventListener('change', (e) => {
+    const customRow = document.getElementById('repeatCustomRow');
     const untilRow = document.getElementById('repeatUntilRow');
     const untilInput = document.getElementById('modalRepeatUntil');
     if (e.target.value === 'none') {
+      customRow.classList.add('hidden');
       untilRow.classList.add('hidden');
       return;
     }
+    customRow.classList.toggle('hidden', e.target.value !== 'custom');
     untilRow.classList.remove('hidden');
     if (!untilInput.value) {
       const base = document.getElementById('modalDate').value || state.date;
@@ -660,13 +668,21 @@ function setupEvents() {
     if (!id) {
       const repeat = document.getElementById('modalRepeat').value;
       if (repeat !== 'none') {
+        const intervalWeeks = repeat === 'custom'
+          ? parseInt(document.getElementById('modalRepeatInterval').value, 10)
+          : parseInt(repeat, 10);
+        if (!Number.isInteger(intervalWeeks) || intervalWeeks < 1 || intervalWeeks > 26) {
+          errorEl.textContent = 'Repeat interval must be a whole number of weeks between 1 and 26.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
         const until = document.getElementById('modalRepeatUntil').value;
         if (!until || until < payload.date) {
           errorEl.textContent = 'Pick a valid "repeat until" date on or after the start date.';
           errorEl.classList.remove('hidden');
           return;
         }
-        payload.recurrence = { frequency: repeat, until };
+        payload.recurrence = { intervalWeeks, until };
       }
     }
 

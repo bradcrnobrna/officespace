@@ -106,9 +106,17 @@
         <label id="repeatRow">Repeat
           <select id="modalRepeat">
             <option value="none">Does not repeat</option>
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Every 2 weeks</option>
+            <option value="1">Weekly</option>
+            <option value="2">Every 2 weeks</option>
+            <option value="custom">Custom interval&hellip;</option>
           </select>
+        </label>
+
+        <label id="repeatCustomRow" class="hidden">Repeat every
+          <span class="inline-field">
+            <input type="number" id="modalRepeatInterval" min="1" max="26" value="3" />
+            week(s)
+          </span>
         </label>
 
         <label id="repeatUntilRow" class="hidden">Repeat until

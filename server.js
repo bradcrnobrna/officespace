@@ -80,7 +80,7 @@ app.get('/api/bookings', (req, res) => {
   res.json(store.getBookings({ date, start, end }));
 });
 
-const RECURRENCE_FREQUENCIES = new Set(['weekly', 'biweekly']);
+const MAX_RECURRENCE_INTERVAL_WEEKS = 26; // roughly 6 months between occurrences, at most
 
 app.post('/api/bookings', (req, res) => {
   const therapist = req.currentTherapist;
@@ -96,9 +96,10 @@ app.post('/api/bookings', (req, res) => {
     return res.status(400).json({ error: 'End time must be after start time' });
   }
 
-  if (recurrence && recurrence.frequency) {
-    if (!RECURRENCE_FREQUENCIES.has(recurrence.frequency)) {
-      return res.status(400).json({ error: 'Unknown repeat frequency' });
+  if (recurrence && recurrence.intervalWeeks !== undefined) {
+    const intervalWeeks = Number(recurrence.intervalWeeks);
+    if (!Number.isInteger(intervalWeeks) || intervalWeeks < 1 || intervalWeeks > MAX_RECURRENCE_INTERVAL_WEEKS) {
+      return res.status(400).json({ error: `Repeat interval must be a whole number of weeks between 1 and ${MAX_RECURRENCE_INTERVAL_WEEKS}` });
     }
     if (!recurrence.until || recurrence.until < date) {
       return res.status(400).json({ error: 'Repeat-until date must be on or after the start date' });
@@ -110,7 +111,7 @@ app.post('/api/bookings', (req, res) => {
       end_time,
       note,
       firstDate: date,
-      frequency: recurrence.frequency,
+      intervalWeeks,
       until: recurrence.until
     });
     if (result.created.length === 0) {

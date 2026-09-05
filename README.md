@@ -92,9 +92,11 @@ a bare free trial — check **Settings → Billing**.
   attributed to whoever is signed in. Click an existing booking to view it;
   if it's yours you can edit the time/office/note or delete it, if it's a
   colleague's you'll see the details read-only.
-- **Recurring appointments**: when booking, set "Repeat" to Weekly or Every 2
-  weeks and pick a "Repeat until" date (capped at 52 occurrences, about a
-  year weekly). Each occurrence is booked individually, so if one date is
+- **Recurring appointments**: when booking, set "Repeat" to Weekly, Every 2
+  weeks, or Custom interval (any whole number of weeks, e.g. every 3 or 4
+  weeks) and pick a "Repeat until" date (capped at 52 occurrences, or 26
+  weeks between occurrences, whichever is more limiting). Each occurrence is
+  booked individually, so if one date is
   already taken it's skipped and you're told which — the rest of the series
   still goes through. Deleting a recurring booking offers "Delete this
   occurrence" (just that one date) or "Delete this & future" (this date
