@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Healing Hideout &mdash; Office Scheduler</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>The Healing Hideout</h1>
+    <p class="subtitle">Office Scheduler</p>
+  </header>
+
+  <main>
+    <section class="status-section">
+      <h2>Right Now</h2>
+      <div id="statusCards" class="status-cards"></div>
+    </section>
+
+    <section class="schedule-section">
+      <div class="schedule-header">
+        <h2>Schedule</h2>
+        <div class="date-nav">
+          <button id="prevDay" class="btn small" title="Previous day">&larr;</button>
+          <input type="date" id="datePicker" />
+          <button id="nextDay" class="btn small" title="Next day">&rarr;</button>
+          <button id="todayBtn" class="btn small">Today</button>
+        </div>
+      </div>
+      <p class="hint">Click any open slot to book an office. Click an existing booking to edit or remove it.</p>
+      <div id="gridWrapper" class="grid-wrapper"></div>
+    </section>
+
+    <section class="therapist-section">
+      <h2>Therapists</h2>
+      <div id="therapistList" class="therapist-list"></div>
+      <form id="addTherapistForm" class="add-therapist-form">
+        <input type="text" id="newTherapistName" placeholder="Add therapist name" required />
+        <button type="submit" class="btn">Add</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modalTitle">Book an Office</h3>
+      <form id="bookingForm">
+        <input type="hidden" id="bookingId" />
+
+        <label>Office
+          <select id="modalOffice" required></select>
+        </label>
+
+        <label>Therapist
+          <select id="modalTherapist" required></select>
+        </label>
+
+        <div class="time-row">
+          <label>Start
+            <select id="modalStart" required></select>
+          </label>
+          <label>End
+            <select id="modalEnd" required></select>
+          </label>
+        </div>
+
+        <label>Note (optional)
+          <input type="text" id="modalNote" maxlength="80" placeholder="e.g. client session" />
+        </label>
+
+        <p id="modalError" class="modal-error hidden"></p>
+
+        <div class="modal-actions">
+          <button type="button" id="deleteBookingBtn" class="btn danger hidden">Delete</button>
+          <div class="spacer"></div>
+          <button type="button" id="cancelModalBtn" class="btn ghost">Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

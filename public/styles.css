@@ -1,0 +1,231 @@
+:root {
+  --bg: #f6f4f1;
+  --panel: #ffffff;
+  --border: #e2ddd6;
+  --text: #2a2622;
+  --muted: #7a736a;
+  --accent: #6b8f71;
+  --accent-dark: #52735a;
+  --danger: #c0524a;
+  --radius: 10px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+.hidden { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  background: var(--accent-dark);
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+.topbar h1 { margin: 0; font-size: 1.6rem; }
+.topbar .subtitle { margin: 0.25rem 0 0; opacity: 0.85; font-size: 0.95rem; }
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+h2 { margin-top: 0; font-size: 1.15rem; }
+
+.hint { color: var(--muted); font-size: 0.85rem; margin-top: -0.5rem; }
+
+/* Status cards */
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+.status-card {
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  color: #fff;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.status-card .office-name { font-weight: 600; font-size: 1rem; }
+.status-card .status-line { font-size: 0.95rem; margin-top: 0.35rem; }
+.status-card .next-line { font-size: 0.8rem; opacity: 0.85; margin-top: 0.25rem; }
+.status-card.free { outline: 3px solid rgba(255,255,255,0.35); }
+
+/* Schedule header */
+.schedule-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.date-nav { display: flex; align-items: center; gap: 0.4rem; }
+.date-nav input[type="date"] {
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn.small { padding: 0.35rem 0.55rem; }
+.btn.primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+.btn.primary:hover { background: var(--accent-dark); }
+.btn.ghost { background: transparent; }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn:hover { filter: brightness(0.97); }
+
+/* Grid */
+.grid-wrapper {
+  overflow-x: auto;
+}
+.schedule-grid {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 600px;
+}
+.grid-header-cell {
+  padding: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.time-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  background: #fafaf8;
+}
+.time-label.hour-mark { color: var(--text); font-weight: 600; }
+
+.slot-cell {
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+}
+.slot-cell:hover { background: #eef3ee; }
+.slot-cell.hour-mark { border-top: 1px solid #c9c2b8; }
+
+.booking-block {
+  border-left: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1px 3px;
+  padding: 0.25rem 0.4rem;
+  color: #fff;
+  font-size: 0.78rem;
+  cursor: pointer;
+  overflow: hidden;
+  line-height: 1.25;
+}
+.booking-block .b-name { font-weight: 700; display: block; }
+.booking-block .b-time { opacity: 0.9; display: block; }
+
+/* Therapists */
+.therapist-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.therapist-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  background: #fff;
+}
+.therapist-chip.inactive { opacity: 0.5; }
+.color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.therapist-chip button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.add-therapist-form { display: flex; gap: 0.5rem; }
+.add-therapist-form input {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 15, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+.modal {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 380px;
+}
+.modal h3 { margin-top: 0; }
+.modal form { display: flex; flex-direction: column; gap: 0.75rem; }
+.modal label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.3rem; color: var(--muted); }
+.modal select, .modal input {
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.time-row { display: flex; gap: 0.6rem; }
+.time-row label { flex: 1; }
+.modal-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.modal-actions .spacer { flex: 1; }
+.modal-error {
+  background: #fbeceb;
+  color: var(--danger);
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .topbar h1 { font-size: 1.3rem; }
+  main { padding: 0.75rem; }
+}

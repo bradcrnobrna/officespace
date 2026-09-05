@@ -1,0 +1,15 @@
+{
+  "name": "healing-hideout-scheduler",
+  "version": "1.0.0",
+  "description": "Simple shared office scheduler for The Healing Hideout - book office time and see who's in the office.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
