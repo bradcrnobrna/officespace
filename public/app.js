@@ -501,14 +501,21 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
   const noteInput = document.getElementById('modalNote');
   const idInput = document.getElementById('bookingId');
   const deleteBtn = document.getElementById('deleteBookingBtn');
+  const deleteSeriesBtn = document.getElementById('deleteSeriesBtn');
   const saveBtn = document.getElementById('saveBookingBtn');
   const cancelBtn = document.getElementById('cancelModalBtn');
   const errorEl = document.getElementById('modalError');
   const ownerNote = document.getElementById('modalOwnerNote');
+  const seriesNote = document.getElementById('modalSeriesNote');
   const bookingAs = document.getElementById('modalBookingAs');
+  const repeatRow = document.getElementById('repeatRow');
+  const repeatUntilRow = document.getElementById('repeatUntilRow');
+  const repeatSelect = document.getElementById('modalRepeat');
+  const repeatUntilInput = document.getElementById('modalRepeatUntil');
 
   errorEl.classList.add('hidden');
   ownerNote.classList.add('hidden');
+  seriesNote.classList.add('hidden');
 
   officeSelect.innerHTML = '';
   state.offices.forEach((o) => {
@@ -537,7 +544,15 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
       ownerNote.textContent = `Booked by ${booking.therapist_name}. You can only edit your own bookings.`;
       ownerNote.classList.remove('hidden');
     }
+    if (booking.series_id) seriesNote.classList.remove('hidden');
+
+    // Repeat is only offered when creating a new booking, not editing an occurrence.
+    repeatRow.classList.add('hidden');
+    repeatUntilRow.classList.add('hidden');
+
+    deleteBtn.textContent = booking.series_id ? 'Delete this occurrence' : 'Delete';
     deleteBtn.classList.toggle('hidden', readOnly);
+    deleteSeriesBtn.classList.toggle('hidden', readOnly || !booking.series_id);
     saveBtn.classList.toggle('hidden', readOnly);
     cancelBtn.textContent = readOnly ? 'Close' : 'Cancel';
   } else {
@@ -548,7 +563,12 @@ function openModal({ officeId, dateStr, startMin, booking } = {}) {
     populateTimeSelects(startMin, false);
     noteInput.value = '';
     bookingAs.textContent = `Booking as: ${state.me.name}`;
+    repeatRow.classList.remove('hidden');
+    repeatUntilRow.classList.add('hidden');
+    repeatSelect.value = 'none';
+    repeatUntilInput.value = '';
     deleteBtn.classList.add('hidden');
+    deleteSeriesBtn.classList.add('hidden');
     saveBtn.classList.remove('hidden');
     cancelBtn.textContent = 'Cancel';
   }
@@ -610,6 +630,20 @@ function setupEvents() {
     if (e.target.id === 'modalOverlay') closeModal();
   });
 
+  document.getElementById('modalRepeat').addEventListener('change', (e) => {
+    const untilRow = document.getElementById('repeatUntilRow');
+    const untilInput = document.getElementById('modalRepeatUntil');
+    if (e.target.value === 'none') {
+      untilRow.classList.add('hidden');
+      return;
+    }
+    untilRow.classList.remove('hidden');
+    if (!untilInput.value) {
+      const base = document.getElementById('modalDate').value || state.date;
+      untilInput.value = fmtDate(addDays(parseLocalDate(base), 56)); // default to 8 weeks out
+    }
+  });
+
   document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('bookingId').value;
@@ -622,9 +656,32 @@ function setupEvents() {
     };
     const errorEl = document.getElementById('modalError');
     errorEl.classList.add('hidden');
+
+    if (!id) {
+      const repeat = document.getElementById('modalRepeat').value;
+      if (repeat !== 'none') {
+        const until = document.getElementById('modalRepeatUntil').value;
+        if (!until || until < payload.date) {
+          errorEl.textContent = 'Pick a valid "repeat until" date on or after the start date.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        payload.recurrence = { frequency: repeat, until };
+      }
+    }
+
     try {
       if (id) {
         await api(`/api/bookings/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      } else if (payload.recurrence) {
+        const result = await api('/api/bookings', { method: 'POST', body: JSON.stringify(payload) });
+        const total = result.created.length + result.skipped.length;
+        if (result.skipped.length) {
+          const details = result.skipped.map((s) => `${s.date}: ${s.reason}`).join('\n');
+          alert(`Booked ${result.created.length} of ${total} occurrences.\n\nSkipped:\n${details}`);
+        } else if (result.truncated) {
+          alert(`Booked ${result.created.length} occurrences (stopped at the yearly limit).`);
+        }
       } else {
         await api('/api/bookings', { method: 'POST', body: JSON.stringify(payload) });
       }
@@ -642,6 +699,21 @@ function setupEvents() {
     if (!confirm('Remove this booking?')) return;
     try {
       await api(`/api/bookings/${id}`, { method: 'DELETE' });
+      closeModal();
+      await refresh();
+    } catch (err) {
+      const errorEl = document.getElementById('modalError');
+      errorEl.textContent = err.message;
+      errorEl.classList.remove('hidden');
+    }
+  });
+
+  document.getElementById('deleteSeriesBtn').addEventListener('click', async () => {
+    const id = document.getElementById('bookingId').value;
+    if (!id) return;
+    if (!confirm('Remove this occurrence and all future ones in this series?')) return;
+    try {
+      await api(`/api/bookings/${id}?scope=series`, { method: 'DELETE' });
       closeModal();
       await refresh();
     } catch (err) {

@@ -64,6 +64,22 @@ function timesOverlap(startA, endA, startB, endB) {
   return startA < endB && endA > startB;
 }
 
+// Pure calendar-date arithmetic in UTC, so stepping by days never shifts
+// under DST regardless of the server's own time zone.
+function isoToUtcMs(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+
+function utcMsToIso(ms) {
+  const d = new Date(ms);
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+function addDaysIso(str, days) {
+  return utcMsToIso(isoToUtcMs(str) + days * 86400000);
+}
+
 // ---- Identity (lightweight "who's using this browser" sign-in) ----
 function getSecret() {
   if (fs.existsSync(SECRET_FILE)) return fs.readFileSync(SECRET_FILE, 'utf8').trim();
@@ -217,6 +233,84 @@ function deleteBooking(id) {
   return true;
 }
 
+// ---- Recurring bookings ----
+// Recurring appointments are materialized as ordinary booking rows sharing a
+// series_id, rather than a stored recurrence rule. That keeps every existing
+// query, conflict check, and ownership rule working unchanged - a recurring
+// booking is just several normal bookings with a shared tag.
+const MAX_RECURRING_OCCURRENCES = 52;
+const RECURRENCE_STEP_DAYS = { weekly: 7, biweekly: 14 };
+
+function addBookingSeries({ office_id, therapist_id, start_time, end_time, note, firstDate, frequency, until }) {
+  const stepDays = RECURRENCE_STEP_DAYS[frequency];
+  const dates = [];
+  let cursor = firstDate;
+  let truncated = false;
+  while (cursor <= until) {
+    if (dates.length >= MAX_RECURRING_OCCURRENCES) {
+      truncated = true;
+      break;
+    }
+    dates.push(cursor);
+    cursor = addDaysIso(cursor, stepDays);
+  }
+
+  const db = load();
+  const seriesId = crypto.randomUUID();
+  const created = [];
+  const skipped = [];
+
+  dates.forEach((date) => {
+    const clash = db.bookings.find(
+      (b) => b.office_id === office_id && b.date === date && timesOverlap(start_time, end_time, b.start_time, b.end_time)
+    );
+    if (clash) {
+      const clashInfo = enrich(clash, db);
+      skipped.push({
+        date,
+        reason: `${clashInfo.therapist_name} already has the ${clashInfo.office_name} booked ${clash.start_time}-${clash.end_time}`
+      });
+      return;
+    }
+    const booking = {
+      id: crypto.randomUUID(),
+      series_id: seriesId,
+      office_id,
+      therapist_id,
+      date,
+      start_time,
+      end_time,
+      note: note || '',
+      created_at: new Date().toISOString()
+    };
+    db.bookings.push(booking);
+    created.push(booking);
+  });
+
+  save(db);
+  return {
+    created: created.map((b) => enrich(b, db)),
+    skipped,
+    truncated
+  };
+}
+
+function deleteBookingSeries(id) {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === id);
+  if (!booking) return false;
+  const before = db.bookings.length;
+  if (booking.series_id) {
+    db.bookings = db.bookings.filter(
+      (b) => !(b.series_id === booking.series_id && b.date >= booking.date)
+    );
+  } else {
+    db.bookings = db.bookings.filter((b) => b.id !== id);
+  }
+  save(db);
+  return db.bookings.length < before;
+}
+
 // ---- Live status ----
 function getCurrentStatus() {
   const db = load();
@@ -252,8 +346,10 @@ module.exports = {
   getBooking,
   findConflict,
   addBooking,
+  addBookingSeries,
   updateBooking,
   deleteBooking,
+  deleteBookingSeries,
   getCurrentStatus,
   todayStr,
   signIdentity,

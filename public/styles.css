@@ -353,7 +353,7 @@ h2 { margin-top: 0; font-size: 1.15rem; }
 }
 .time-row { display: flex; gap: 0.6rem; }
 .time-row label { flex: 1; }
-.modal-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.modal-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; flex-wrap: wrap; }
 .modal-actions .spacer { flex: 1; }
 .modal-error {
   background: #fbeceb;

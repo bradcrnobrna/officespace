@@ -92,6 +92,14 @@ a bare free trial — check **Settings → Billing**.
   attributed to whoever is signed in. Click an existing booking to view it;
   if it's yours you can edit the time/office/note or delete it, if it's a
   colleague's you'll see the details read-only.
+- **Recurring appointments**: when booking, set "Repeat" to Weekly or Every 2
+  weeks and pick a "Repeat until" date (capped at 52 occurrences, about a
+  year weekly). Each occurrence is booked individually, so if one date is
+  already taken it's skipped and you're told which — the rest of the series
+  still goes through. Deleting a recurring booking offers "Delete this
+  occurrence" (just that one date) or "Delete this & future" (this date
+  onward, leaving past occurrences in the schedule history). Repeat is only
+  set when creating a booking, not when editing an existing occurrence.
 - **Therapists panel**: add a therapist once; they then appear in the sign-in
   list. "Deactivate" hides someone from sign-in (e.g. if they leave the
   practice) without deleting their history from past schedules; "Reactivate"

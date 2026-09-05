@@ -103,11 +103,25 @@
           <input type="text" id="modalNote" maxlength="80" placeholder="e.g. client session" />
         </label>
 
+        <label id="repeatRow">Repeat
+          <select id="modalRepeat">
+            <option value="none">Does not repeat</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+          </select>
+        </label>
+
+        <label id="repeatUntilRow" class="hidden">Repeat until
+          <input type="date" id="modalRepeatUntil" />
+        </label>
+
+        <p id="modalSeriesNote" class="owner-note hidden">This is part of a recurring series.</p>
         <p id="modalOwnerNote" class="owner-note hidden"></p>
         <p id="modalError" class="modal-error hidden"></p>
 
         <div class="modal-actions">
           <button type="button" id="deleteBookingBtn" class="btn danger hidden">Delete</button>
+          <button type="button" id="deleteSeriesBtn" class="btn danger hidden">Delete this &amp; future</button>
           <div class="spacer"></div>
           <button type="button" id="cancelModalBtn" class="btn ghost">Cancel</button>
           <button type="submit" id="saveBookingBtn" class="btn primary">Save</button>

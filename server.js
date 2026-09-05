@@ -80,19 +80,47 @@ app.get('/api/bookings', (req, res) => {
   res.json(store.getBookings({ date, start, end }));
 });
 
+const RECURRENCE_FREQUENCIES = new Set(['weekly', 'biweekly']);
+
 app.post('/api/bookings', (req, res) => {
   const therapist = req.currentTherapist;
   if (!therapist) {
     return res.status(401).json({ error: 'Please sign in as yourself before booking an office.' });
   }
 
-  const { office_id, date, start_time, end_time, note } = req.body;
+  const { office_id, date, start_time, end_time, note, recurrence } = req.body;
   if (!office_id || !date || !start_time || !end_time) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   if (start_time >= end_time) {
     return res.status(400).json({ error: 'End time must be after start time' });
   }
+
+  if (recurrence && recurrence.frequency) {
+    if (!RECURRENCE_FREQUENCIES.has(recurrence.frequency)) {
+      return res.status(400).json({ error: 'Unknown repeat frequency' });
+    }
+    if (!recurrence.until || recurrence.until < date) {
+      return res.status(400).json({ error: 'Repeat-until date must be on or after the start date' });
+    }
+    const result = store.addBookingSeries({
+      office_id,
+      therapist_id: therapist.id,
+      start_time,
+      end_time,
+      note,
+      firstDate: date,
+      frequency: recurrence.frequency,
+      until: recurrence.until
+    });
+    if (result.created.length === 0) {
+      return res.status(409).json({
+        error: `Every occurrence conflicted with an existing booking: ${result.skipped.map((s) => s.date).join(', ')}`
+      });
+    }
+    return res.status(201).json(result);
+  }
+
   const conflict = store.findConflict({ office_id, date, start_time, end_time });
   if (conflict) {
     return res.status(409).json({
@@ -141,7 +169,11 @@ app.delete('/api/bookings/:id', (req, res) => {
     return res.status(403).json({ error: 'You can only delete your own bookings.' });
   }
 
-  store.deleteBooking(req.params.id);
+  if (req.query.scope === 'series' && existing.series_id) {
+    store.deleteBookingSeries(req.params.id);
+  } else {
+    store.deleteBooking(req.params.id);
+  }
   res.status(204).end();
 });
 
