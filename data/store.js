@@ -2,8 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const DB_FILE = path.join(__dirname, 'db.json');
-const SECRET_FILE = path.join(__dirname, 'session-secret.txt');
+// Runtime data lives in its own directory, separate from the application
+// code in this folder, so a mounted volume (e.g. Railway's persistent disk)
+// can be pointed at just the data directory without hiding store.js itself.
+const STORAGE_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'storage');
+const DB_FILE = path.join(STORAGE_DIR, 'db.json');
+const SECRET_FILE = path.join(STORAGE_DIR, 'session-secret.txt');
 
 const THERAPIST_COLORS = [
   '#3b82f6', // blue
@@ -35,7 +39,7 @@ function load() {
   try {
     return JSON.parse(raw);
   } catch (err) {
-    throw new Error(`data/db.json is corrupted: ${err.message}`);
+    throw new Error(`${DB_FILE} is corrupted: ${err.message}`);
   }
 }
 

@@ -27,9 +27,11 @@ Then open `http://localhost:3000` (or the machine's address on your office
 Wi-Fi, e.g. `http://192.168.1.50:3000`, so any therapist's phone or laptop can
 reach it).
 
-Data is stored in `data/db.json`, created automatically on first run with the
-three offices pre-loaded and no therapists yet — add your 4 (up to 6)
-therapists from the "Therapists" panel at the bottom of the page.
+Data is stored in `storage/db.json`, created automatically on first run with
+the three offices pre-loaded and no therapists yet — add your 4 (up to 6)
+therapists from the "Therapists" panel at the bottom of the page. The
+`storage/` folder is separate from the application code on purpose (see
+below), and is git-ignored.
 
 ### Time zone
 
@@ -51,13 +53,27 @@ Pick whichever is easiest for your practice:
   the office network.
 - **A small always-on host** (Render, Railway, Fly.io, a $5 VPS, etc.):
   deploy this repo and run `npm start`. Since bookings are stored in a
-  local file (`data/db.json`), make sure whatever host you pick gives the
-  app a **persistent disk/volume** at the `data/` folder — most free
+  local file (`storage/db.json`), make sure whatever host you pick gives the
+  app a **persistent disk/volume mounted at `storage/`** — most free
   serverless tiers wipe local files on redeploy, so avoid those unless you
   attach persistent storage.
 
 There's no external database to set up either way — the app manages its own
 data file.
+
+### Railway specifically
+
+If you're deploying on Railway: attach the volume (right-click the service
+tile → **Attach Volume**, or its **⋯** menu) with mount path **`/app/storage`**
+— not `/app/data`. `data/` holds this app's source code (`data/store.js`);
+mounting a volume there would replace that whole folder with the empty
+volume on every deploy and delete the code, crashing the app with
+`Cannot find module './data/store'`. `storage/` only ever holds the runtime
+`db.json` and session secret, so it's safe to mount a volume there.
+
+If "Attach Volume" doesn't show up in that menu, it's usually because
+volumes require a paid Hobby plan (or a payment method on file) rather than
+a bare free trial — check **Settings → Billing**.
 
 ## Using it day to day
 

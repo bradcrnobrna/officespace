@@ -1,5 +1,4 @@
 node_modules/
-data/db.json
-data/session-secret.txt
+storage/
 *.log
 .DS_Store
