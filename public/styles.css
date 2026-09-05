@@ -28,10 +28,11 @@ body {
 }
 
 .topbar {
-  background: var(--brand-green-dark);
-  color: #fff;
+  background: #ffffff;
+  color: var(--text);
   padding: 1rem 1.5rem;
   text-align: center;
+  border-bottom: 3px solid var(--brand-green);
 }
 .brand {
   display: inline-flex;
@@ -39,11 +40,11 @@ body {
   gap: 0.6rem;
   text-decoration: none;
 }
-.brand-logo { height: 44px; width: auto; display: block; }
+.brand-logo { height: 58px; width: auto; display: block; }
 .brand-name { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.01em; }
-.brand-healing { color: #ffffff; }
+.brand-healing { color: var(--brand-green); }
 .brand-hideout { color: var(--brand-gold); }
-.topbar .subtitle { margin: 0.2rem 0 0; opacity: 0.85; font-size: 0.9rem; color: #fff; }
+.topbar .subtitle { margin: 0.2rem 0 0; opacity: 0.85; font-size: 0.9rem; color: var(--muted); }
 
 .identity-bar {
   max-width: 1000px;
@@ -379,6 +380,6 @@ h2 { margin-top: 0; font-size: 1.15rem; }
 
 @media (max-width: 480px) {
   .brand-name { font-size: 1.15rem; }
-  .brand-logo { height: 34px; }
+  .brand-logo { height: 44px; }
   main { padding: 0.75rem; }
 }

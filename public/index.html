@@ -9,8 +9,14 @@
 <body>
   <header class="topbar">
     <a class="brand" href="https://www.healing-hideout.com" target="_blank" rel="noopener">
-      <img src="logo.png" alt="" class="brand-logo" onerror="this.style.display='none'" />
-      <span class="brand-name"><span class="brand-healing">Healing</span> <span class="brand-hideout">Hideout</span></span>
+      <img
+        src="logo.png"
+        alt="Healing Hideout"
+        class="brand-logo"
+        onerror="this.style.display='none'"
+        onload="document.getElementById('brandNameFallback').style.display='none'"
+      />
+      <span id="brandNameFallback" class="brand-name"><span class="brand-healing">Healing</span> <span class="brand-hideout">Hideout</span></span>
     </a>
     <p class="subtitle">Office Scheduler</p>
   </header>
