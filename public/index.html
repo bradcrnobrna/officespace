@@ -8,9 +8,17 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>The Healing Hideout</h1>
+    <a class="brand" href="https://www.healing-hideout.com" target="_blank" rel="noopener">
+      <img src="logo.png" alt="" class="brand-logo" onerror="this.style.display='none'" />
+      <span class="brand-name"><span class="brand-healing">Healing</span> <span class="brand-hideout">Hideout</span></span>
+    </a>
     <p class="subtitle">Office Scheduler</p>
   </header>
+
+  <div class="identity-bar">
+    <span id="identityStatus">Not signed in</span>
+    <button id="identityBtn" class="btn small">Sign in</button>
+  </div>
 
   <main>
     <section class="status-section">
@@ -21,19 +29,26 @@
     <section class="schedule-section">
       <div class="schedule-header">
         <h2>Schedule</h2>
-        <div class="date-nav">
-          <button id="prevDay" class="btn small" title="Previous day">&larr;</button>
-          <input type="date" id="datePicker" />
-          <button id="nextDay" class="btn small" title="Next day">&rarr;</button>
-          <button id="todayBtn" class="btn small">Today</button>
+        <div class="view-tabs" id="viewTabs">
+          <button class="view-tab active" data-view="day">Day</button>
+          <button class="view-tab" data-view="week">Week</button>
+          <button class="view-tab" data-view="month">Month</button>
         </div>
       </div>
-      <p class="hint">Click any open slot to book an office. Click an existing booking to edit or remove it.</p>
+      <div class="date-nav">
+        <button id="prevBtn" class="btn small" title="Previous">&larr;</button>
+        <input type="date" id="datePicker" />
+        <button id="nextBtn" class="btn small" title="Next">&rarr;</button>
+        <button id="todayBtn" class="btn small">Today</button>
+        <span id="rangeLabel" class="range-label"></span>
+      </div>
+      <p class="hint" id="viewHint">Click any open slot to book an office. Click an existing booking to view or edit it.</p>
       <div id="gridWrapper" class="grid-wrapper"></div>
     </section>
 
     <section class="therapist-section">
       <h2>Therapists</h2>
+      <p class="hint">Add everyone here once, then use "Sign in" above to book as yourself.</p>
       <div id="therapistList" class="therapist-list"></div>
       <form id="addTherapistForm" class="add-therapist-form">
         <input type="text" id="newTherapistName" placeholder="Add therapist name" required />
@@ -42,18 +57,31 @@
     </section>
   </main>
 
+  <div id="identityOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Who are you?</h3>
+      <p class="hint">Pick your name to sign in on this device.</p>
+      <div id="identityList" class="identity-list"></div>
+      <div class="modal-actions">
+        <div class="spacer"></div>
+        <button type="button" id="cancelIdentityBtn" class="btn ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal">
       <h3 id="modalTitle">Book an Office</h3>
       <form id="bookingForm">
         <input type="hidden" id="bookingId" />
+        <p id="modalBookingAs" class="booking-as"></p>
 
         <label>Office
           <select id="modalOffice" required></select>
         </label>
 
-        <label>Therapist
-          <select id="modalTherapist" required></select>
+        <label>Date
+          <input type="date" id="modalDate" required />
         </label>
 
         <div class="time-row">
@@ -69,13 +97,14 @@
           <input type="text" id="modalNote" maxlength="80" placeholder="e.g. client session" />
         </label>
 
+        <p id="modalOwnerNote" class="owner-note hidden"></p>
         <p id="modalError" class="modal-error hidden"></p>
 
         <div class="modal-actions">
           <button type="button" id="deleteBookingBtn" class="btn danger hidden">Delete</button>
           <div class="spacer"></div>
           <button type="button" id="cancelModalBtn" class="btn ghost">Cancel</button>
-          <button type="submit" class="btn primary">Save</button>
+          <button type="submit" id="saveBookingBtn" class="btn primary">Save</button>
         </div>
       </form>
     </div>

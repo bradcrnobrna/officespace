@@ -6,6 +6,31 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const IDENTITY_COOKIE = 'hh_identity';
+const IDENTITY_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 180; // 180 days
+
+function parseCookies(req) {
+  const header = req.headers.cookie;
+  const out = {};
+  if (!header) return out;
+  header.split(';').forEach((pair) => {
+    const idx = pair.indexOf('=');
+    if (idx === -1) return;
+    out[pair.slice(0, idx).trim()] = decodeURIComponent(pair.slice(idx + 1).trim());
+  });
+  return out;
+}
+
+// Identifies who is using this browser, based on a signed cookie set at /api/me.
+// This is a lightweight "which therapist is this" check for a small trusted team,
+// not a password-protected login.
+app.use((req, res, next) => {
+  const token = parseCookies(req)[IDENTITY_COOKIE];
+  const therapistId = token ? store.verifyIdentity(token) : null;
+  req.currentTherapist = therapistId ? store.getTherapist(therapistId) : null;
+  next();
+});
+
 app.get('/api/offices', (req, res) => {
   res.json(store.getOffices());
 });
@@ -26,13 +51,43 @@ app.patch('/api/therapists/:id', (req, res) => {
   res.json(updated);
 });
 
+// ---- Identity ----
+app.get('/api/me', (req, res) => {
+  res.json({ therapist: req.currentTherapist });
+});
+
+app.post('/api/me', (req, res) => {
+  const therapist = store.getTherapist(req.body.therapist_id);
+  if (!therapist || !therapist.active) {
+    return res.status(400).json({ error: 'Unknown or inactive therapist' });
+  }
+  res.cookie(IDENTITY_COOKIE, store.signIdentity(therapist.id), {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: IDENTITY_MAX_AGE_MS
+  });
+  res.json({ therapist });
+});
+
+app.post('/api/logout', (req, res) => {
+  res.clearCookie(IDENTITY_COOKIE);
+  res.status(204).end();
+});
+
+// ---- Bookings ----
 app.get('/api/bookings', (req, res) => {
-  res.json(store.getBookings({ date: req.query.date }));
+  const { date, start, end } = req.query;
+  res.json(store.getBookings({ date, start, end }));
 });
 
 app.post('/api/bookings', (req, res) => {
-  const { office_id, therapist_id, date, start_time, end_time, note } = req.body;
-  if (!office_id || !therapist_id || !date || !start_time || !end_time) {
+  const therapist = req.currentTherapist;
+  if (!therapist) {
+    return res.status(401).json({ error: 'Please sign in as yourself before booking an office.' });
+  }
+
+  const { office_id, date, start_time, end_time, note } = req.body;
+  if (!office_id || !date || !start_time || !end_time) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   if (start_time >= end_time) {
@@ -44,12 +99,19 @@ app.post('/api/bookings', (req, res) => {
       error: `${conflict.therapist_name} already has the ${conflict.office_name} booked ${conflict.start_time}-${conflict.end_time}`
     });
   }
-  res.status(201).json(store.addBooking({ office_id, therapist_id, date, start_time, end_time, note }));
+  res.status(201).json(
+    store.addBooking({ office_id, therapist_id: therapist.id, date, start_time, end_time, note })
+  );
 });
 
 app.put('/api/bookings/:id', (req, res) => {
   const existing = store.getBooking(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Booking not found' });
+
+  const me = req.currentTherapist;
+  if (!me || me.id !== existing.therapist_id) {
+    return res.status(403).json({ error: 'You can only edit your own bookings.' });
+  }
 
   const merged = { ...existing, ...req.body };
   if (merged.start_time >= merged.end_time) {
@@ -71,8 +133,15 @@ app.put('/api/bookings/:id', (req, res) => {
 });
 
 app.delete('/api/bookings/:id', (req, res) => {
-  const ok = store.deleteBooking(req.params.id);
-  if (!ok) return res.status(404).json({ error: 'Booking not found' });
+  const existing = store.getBooking(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Booking not found' });
+
+  const me = req.currentTherapist;
+  if (!me || me.id !== existing.therapist_id) {
+    return res.status(403).json({ error: 'You can only delete your own bookings.' });
+  }
+
+  store.deleteBooking(req.params.id);
   res.status(204).end();
 });
 

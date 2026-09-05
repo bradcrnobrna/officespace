@@ -6,11 +6,13 @@ the clunky Office 365 workarounds with two things:
 
 1. A **live dashboard** showing which office is occupied right now, by whom,
    and until when — plus what's coming up next.
-2. A **click-to-book schedule grid** where a therapist picks a day, clicks an
-   open time slot for an office, and punches in their time. Double-bookings
-   are blocked automatically.
+2. A **click-to-book schedule grid**, with Day/Week/Month views, where a
+   therapist picks a slot and punches in their time. Double-bookings are
+   blocked automatically.
+3. Lightweight **sign-in**, so a therapist can only edit or delete their own
+   bookings — everyone else's show up read-only.
 
-No logins, no Outlook add-ins, no shared mailboxes — just open the page.
+No passwords, no Outlook add-ins, no shared mailboxes — just open the page.
 
 ## Running it
 
@@ -61,14 +63,31 @@ data file.
 
 - **Dashboard ("Right Now")**: at a glance, see which of the three offices
   are occupied and by whom, and when each will free up.
-- **Schedule grid**: use the arrows or date picker to pick a day. Click any
-  empty slot under an office column to book it — pick your name, start/end
-  time, and an optional note (e.g. "client session"). Click an existing
-  colored block to edit the time or delete it.
-- **Therapists panel**: add a therapist once and they show up in the booking
-  form from then on. "Deactivate" hides someone from the booking dropdown
-  (e.g. if they leave the practice) without deleting their history from past
-  schedules; "Reactivate" brings them back.
+- **Sign in**: click "Sign in" top-right and pick your name once per device
+  (phone, laptop, the office computer). No password — this is a small
+  trusted-team convenience, not a security login; it exists so the app knows
+  whose booking is whose.
+- **Day / Week / Month views**: switch with the tabs above the schedule.
+  - *Day* is the click-to-book time grid.
+  - *Week* lists each office's bookings per day with a "+ Add" button per
+    cell.
+  - *Month* is an overview — click a day to jump into its Day view.
+- **Booking**: click any open slot (Day/Week) to book — it's automatically
+  attributed to whoever is signed in. Click an existing booking to view it;
+  if it's yours you can edit the time/office/note or delete it, if it's a
+  colleague's you'll see the details read-only.
+- **Therapists panel**: add a therapist once; they then appear in the sign-in
+  list. "Deactivate" hides someone from sign-in (e.g. if they leave the
+  practice) without deleting their history from past schedules; "Reactivate"
+  brings them back.
+
+## Branding
+
+The header links to [www.healing-hideout.com](https://www.healing-hideout.com)
+and is styled with the practice's olive-green/gold palette. To show the actual
+logo (rather than just the text wordmark), export it as a PNG with a
+transparent background and save it as `public/logo.png` — the header is
+already wired to display it at that path, no code changes needed.
 
 ## Notes on scale
 

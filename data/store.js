@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const DB_FILE = path.join(__dirname, 'db.json');
+const SECRET_FILE = path.join(__dirname, 'session-secret.txt');
 
 const THERAPIST_COLORS = [
   '#3b82f6', // blue
@@ -59,6 +60,34 @@ function timesOverlap(startA, endA, startB, endB) {
   return startA < endB && endA > startB;
 }
 
+// ---- Identity (lightweight "who's using this browser" sign-in) ----
+function getSecret() {
+  if (fs.existsSync(SECRET_FILE)) return fs.readFileSync(SECRET_FILE, 'utf8').trim();
+  const secret = crypto.randomBytes(32).toString('hex');
+  fs.mkdirSync(path.dirname(SECRET_FILE), { recursive: true });
+  fs.writeFileSync(SECRET_FILE, secret);
+  return secret;
+}
+const SESSION_SECRET = getSecret();
+
+function signIdentity(therapistId) {
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(therapistId).digest('hex');
+  return `${therapistId}.${sig}`;
+}
+
+function verifyIdentity(token) {
+  if (!token) return null;
+  const idx = token.lastIndexOf('.');
+  if (idx === -1) return null;
+  const id = token.slice(0, idx);
+  const sig = token.slice(idx + 1);
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(id).digest('hex');
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
+  return id;
+}
+
 // ---- Offices ----
 function getOffices() {
   return load().offices;
@@ -67,6 +96,10 @@ function getOffices() {
 // ---- Therapists ----
 function getTherapists() {
   return load().therapists;
+}
+
+function getTherapist(id) {
+  return load().therapists.find((t) => t.id === id) || null;
 }
 
 function addTherapist(name) {
@@ -97,13 +130,17 @@ function updateTherapist(id, patch) {
 }
 
 // ---- Bookings ----
-function getBookings({ date } = {}) {
+function getBookings({ date, start, end } = {}) {
   const db = load();
   let bookings = db.bookings;
-  if (date) bookings = bookings.filter((b) => b.date === date);
+  if (date) {
+    bookings = bookings.filter((b) => b.date === date);
+  } else if (start && end) {
+    bookings = bookings.filter((b) => b.date >= start && b.date <= end);
+  }
   return bookings
     .map((b) => enrich(b, db))
-    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    .sort((a, b) => (a.date + a.start_time).localeCompare(b.date + b.start_time));
 }
 
 function getBooking(id) {
@@ -158,7 +195,6 @@ function updateBooking(id, patch) {
   if (!booking) return null;
   Object.assign(booking, {
     office_id: patch.office_id ?? booking.office_id,
-    therapist_id: patch.therapist_id ?? booking.therapist_id,
     date: patch.date ?? booking.date,
     start_time: patch.start_time ?? booking.start_time,
     end_time: patch.end_time ?? booking.end_time,
@@ -205,6 +241,7 @@ function getCurrentStatus() {
 module.exports = {
   getOffices,
   getTherapists,
+  getTherapist,
   addTherapist,
   updateTherapist,
   getBookings,
@@ -214,5 +251,7 @@ module.exports = {
   updateBooking,
   deleteBooking,
   getCurrentStatus,
-  todayStr
+  todayStr,
+  signIdentity,
+  verifyIdentity
 };
